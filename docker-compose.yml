@@ -1,51 +1,30 @@
 services:
-  mongodb:
-    image: mongo
-    container_name: mongo_db
+  mongo:
+    image: mongo:latest
+    container_name: mongo
     ports:
-      - 27017:27017
+      - "27017:27017"
     volumes:
-      - mongo:/data
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
-    networks:
-      - mern-network
+      - mongo-data:/data/db
 
-  mongo-express:
-    image: mongo-express
-    container_name: mongo_express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=root
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-    networks:
-      - mern-network
   server:
-    image: mern-server
-    container_name: server
+    image: safaj/mern-server:1.0
+    container_name: mern-server
     ports:
       - "9000:9000"
-    networks:
-      - mern-network
     environment:
-      - MONGO_URI=mongodb://root:root@mongodb:27017
-  
+      - MONGO_URI=mongodb://mongo:27017/todos
+      - PORT=9000
+    depends_on:
+      - mongo
+
   client:
-    image: mern-client
-    container_name: client
+    image: safaj/mern-client:1.0
+    container_name: mern-client
     ports:
-      - "3000:3000"
-    networks:
-      - mern-network
-
-
-networks:
-  mern-network:
-    driver: bridge
+      - "3000:80"
+    depends_on:
+      - server
 
 volumes:
-  mongo: {}
+  mongo-data:

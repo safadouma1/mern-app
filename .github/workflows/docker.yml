@@ -12,6 +12,15 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
 
+      - name: Creer un fichier hello world
+        run: echo "hello world" > test.txt
+
+      - name: Garder le fichier (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mon-fichier
+          path: test.txt
+
       - name: Login Docker Hub
         uses: docker/login-action@v3
         with:

@@ -8,7 +8,7 @@ services:
       - mongo-data:/data/db
 
   server:
-    image: safaj/mern-server:1.0
+    image: safaj/mern-server:5
     container_name: mern-server
     ports:
       - "9000:9000"
@@ -19,7 +19,7 @@ services:
       - mongo
 
   client:
-    image: safaj/mern-client:1.0
+    image: safaj/mern-client:5
     container_name: mern-client
     ports:
       - "3000:80"

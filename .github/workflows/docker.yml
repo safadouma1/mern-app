@@ -25,6 +25,10 @@ jobs:
         run: |
           docker build -t safaj/mern-server:${{ github.run_number }} -t safaj/mern-server:latest ./server
 
+      - name: Scan securite serveur (Trivy)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity LOW,MEDIUM,HIGH,CRITICAL safaj/mern-server:latest
+
       - name: Push image serveur
         run: |
           docker push safaj/mern-server:${{ github.run_number }}
@@ -33,6 +37,10 @@ jobs:
       - name: Build image client (version + latest)
         run: |
           docker build --build-arg REACT_APP_API_URL=http://localhost:9000 -t safaj/mern-client:${{ github.run_number }} -t safaj/mern-client:latest ./client
+
+      - name: Scan securite client (Trivy)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity LOW,MEDIUM,HIGH,CRITICAL safaj/mern-client:latest
 
       - name: Push image client
         run: |

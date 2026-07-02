@@ -53,10 +53,7 @@ jobs:
           sed -i "s#safaj/mern-client:.*#safaj/mern-client:${{ github.run_number }}#" docker-compose.yml
 
       - name: Commit et push du docker-compose.yml
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add docker-compose.yml
-          git commit -m "Update docker-compose vers version ${{ github.run_number }} [skip ci]" || echo "Rien a committer"
-          git pull --rebase
-          git push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update docker-compose vers version ${{ github.run_number }} [skip ci]"
+          file_pattern: docker-compose.yml

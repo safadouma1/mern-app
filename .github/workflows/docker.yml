@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -35,3 +38,16 @@ jobs:
         run: |
           docker push safaj/mern-client:${{ github.run_number }}
           docker push safaj/mern-client:latest
+
+      - name: Mettre a jour docker-compose.yml avec la nouvelle version
+        run: |
+          sed -i "s#safaj/mern-server:.*#safaj/mern-server:${{ github.run_number }}#" docker-compose.yml
+          sed -i "s#safaj/mern-client:.*#safaj/mern-client:${{ github.run_number }}#" docker-compose.yml
+
+      - name: Commit et push du docker-compose.yml
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docker-compose.yml
+          git commit -m "Update docker-compose vers version ${{ github.run_number }} [skip ci]" || echo "Rien a committer"
+          git push

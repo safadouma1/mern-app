@@ -12,29 +12,26 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
 
-      - name: Creer un fichier hello world
-        run: echo "hello world" > test.txt
-
-      - name: Garder le fichier (artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: mon-fichier
-          path: test.txt
-
       - name: Login Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build image serveur
-        run: docker build -t safaj/mern-server:latest ./server
+      - name: Build image serveur (version + latest)
+        run: |
+          docker build -t safaj/mern-server:${{ github.run_number }} -t safaj/mern-server:latest ./server
 
       - name: Push image serveur
-        run: docker push safaj/mern-server:latest
+        run: |
+          docker push safaj/mern-server:${{ github.run_number }}
+          docker push safaj/mern-server:latest
 
-      - name: Build image client
-        run: docker build --build-arg REACT_APP_API_URL=http://localhost:9000 -t safaj/mern-client:latest ./client
+      - name: Build image client (version + latest)
+        run: |
+          docker build --build-arg REACT_APP_API_URL=http://localhost:9000 -t safaj/mern-client:${{ github.run_number }} -t safaj/mern-client:latest ./client
 
       - name: Push image client
-        run: docker push safaj/mern-client:latest
+        run: |
+          docker push safaj/mern-client:${{ github.run_number }}
+          docker push safaj/mern-client:latest

@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   schedule:
     - cron: '*/30 * * * *'
 
@@ -16,6 +18,15 @@ jobs:
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
+
+      - name: Definir la version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "TAG=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=${{ github.run_number }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Installer Node
         uses: actions/setup-node@v4
@@ -40,7 +51,7 @@ jobs:
 
       - name: Build image serveur (version + latest)
         run: |
-          docker build -t safaj/mern-server:${{ github.run_number }} -t safaj/mern-server:latest ./server
+          docker build -t safaj/mern-server:${{ steps.version.outputs.TAG }} -t safaj/mern-server:latest ./server
 
       - name: Scan securite serveur (Trivy)
         run: |
@@ -48,12 +59,12 @@ jobs:
 
       - name: Push image serveur
         run: |
-          docker push safaj/mern-server:${{ github.run_number }}
+          docker push safaj/mern-server:${{ steps.version.outputs.TAG }}
           docker push safaj/mern-server:latest
 
       - name: Build image client (version + latest)
         run: |
-          docker build --build-arg REACT_APP_API_URL=http://localhost:9000 -t safaj/mern-client:${{ github.run_number }} -t safaj/mern-client:latest ./client
+          docker build --build-arg REACT_APP_API_URL=http://localhost:9000 -t safaj/mern-client:${{ steps.version.outputs.TAG }} -t safaj/mern-client:latest ./client
 
       - name: Scan securite client (Trivy)
         run: |
@@ -61,16 +72,16 @@ jobs:
 
       - name: Push image client
         run: |
-          docker push safaj/mern-client:${{ github.run_number }}
+          docker push safaj/mern-client:${{ steps.version.outputs.TAG }}
           docker push safaj/mern-client:latest
 
       - name: Mettre a jour docker-compose.yml avec la nouvelle version
         run: |
-          sed -i "s#safaj/mern-server:.*#safaj/mern-server:${{ github.run_number }}#" docker-compose.yml
-          sed -i "s#safaj/mern-client:.*#safaj/mern-client:${{ github.run_number }}#" docker-compose.yml
+          sed -i "s#safaj/mern-server:.*#safaj/mern-server:${{ steps.version.outputs.TAG }}#" docker-compose.yml
+          sed -i "s#safaj/mern-client:.*#safaj/mern-client:${{ steps.version.outputs.TAG }}#" docker-compose.yml
 
       - name: Commit et push du docker-compose.yml
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update docker-compose vers version ${{ github.run_number }} [skip ci]"
+          commit_message: "Update docker-compose vers version ${{ steps.version.outputs.TAG }} [skip ci]"
           file_pattern: docker-compose.yml

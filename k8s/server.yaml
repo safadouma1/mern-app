@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mern-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mern-server
+  template:
+    metadata:
+      labels:
+        app: mern-server
+    spec:
+      containers:
+        - name: mern-server
+          image: safaj/mern-server:latest
+          ports:
+            - containerPort: 9000
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/todos"
+            - name: PORT
+              value: "9000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mern-server
+spec:
+  selector:
+    app: mern-server
+  ports:
+    - port: 9000
+      targetPort: 9000

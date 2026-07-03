@@ -75,15 +75,22 @@ jobs:
           docker push safaj/mern-client:${{ steps.version.outputs.TAG }}
           docker push safaj/mern-client:latest
 
+      - name: Se positionner sur main pour pouvoir push
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git fetch origin main
+          git checkout main
+
       - name: Mettre a jour docker-compose.yml avec la nouvelle version
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           sed -i "s#safaj/mern-server:.*#safaj/mern-server:${{ steps.version.outputs.TAG }}#" docker-compose.yml
           sed -i "s#safaj/mern-client:.*#safaj/mern-client:${{ steps.version.outputs.TAG }}#" docker-compose.yml
 
       - name: Commit et push du docker-compose.yml
-        if: github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/')
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update docker-compose vers version ${{ steps.version.outputs.TAG }} [skip ci]"
           file_pattern: docker-compose.yml
+          branch: main
